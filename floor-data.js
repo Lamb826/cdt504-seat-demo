@@ -4,13 +4,13 @@ window.LIBRARY_FLOORS = [
   {
     id: "1f",
     label: "1/F",
-    name: "一楼",
+    labelKey: "firstFloor",
     width: 1680,
     height: 592,
     image: "floors/1f.webp",
     zones: [
       {
-        name: "中央长桌",
+        labelKey: "centralLongTables",
         bounds: [0.32124, 0.25294, 0.29223, 0.21176],
         seats: [
           { id: "1F-A01", x: 0.42073, y: 0.36765, state: "empty" },
@@ -22,7 +22,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "左侧桌位",
+        labelKey: "leftSeats",
         bounds: [0.09016, 0.63235, 0.23834, 0.29706],
         seats: [
           { id: "1F-B01", x: 0.11088, y: 0.67059, state: "occ" },
@@ -34,7 +34,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右侧桌位",
+        labelKey: "rightSeats",
         bounds: [0.69119, 0.41765, 0.2114, 0.30294],
         seats: [
           { id: "1F-C01", x: 0.69845, y: 0.46176, state: "occ" },
@@ -50,13 +50,13 @@ window.LIBRARY_FLOORS = [
   {
     id: "mf",
     label: "M/F",
-    name: "夹层",
+    labelKey: "mezzanine",
     width: 1680,
     height: 504,
     image: "floors/mf.webp",
     zones: [
       {
-        name: "左侧桌位",
+        labelKey: "leftSeats",
         bounds: [0.01201, 0.15, 0.30631, 0.30333],
         seats: [
           { id: "MF-A01", x: 0.03103, y: 0.22, state: "empty" },
@@ -68,7 +68,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右侧桌位",
+        labelKey: "rightSeats",
         bounds: [0.66166, 0.17667, 0.16717, 0.62333],
         seats: [
           { id: "MF-B01", x: 0.67968, y: 0.33333, state: "away", leftMin: 18 },
@@ -80,7 +80,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右端桌位",
+        labelKey: "farRightSeats",
         bounds: [0.86587, 0.36333, 0.12713, 0.27],
         seats: [
           { id: "MF-C01", x: 0.88288, y: 0.43, state: "empty" },
@@ -96,13 +96,13 @@ window.LIBRARY_FLOORS = [
   {
     id: "2f",
     label: "2/F",
-    name: "二楼",
+    labelKey: "secondFloor",
     width: 1680,
     height: 998,
     image: "floors/2f.webp",
     zones: [
       {
-        name: "左侧长桌",
+        labelKey: "leftLongTables",
         bounds: [0.0088, 0.31259, 0.26825, 0.60593],
         seats: [
           { id: "2F-A01", x: 0.19437, y: 0.3437, state: "empty" },
@@ -116,7 +116,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "中央桌位",
+        labelKey: "centralSeats",
         bounds: [0.29815, 0.28444, 0.37643, 0.22963],
         seats: [
           { id: "2F-B01", x: 0.32454, y: 0.31407, state: "empty" },
@@ -130,7 +130,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右上桌位",
+        labelKey: "upperRightSeats",
         bounds: [0.68777, 0.05481, 0.14512, 0.31556],
         seats: [
           { id: "2F-C01", x: 0.69569, y: 0.09037, state: "empty" },
@@ -144,7 +144,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右下桌位",
+        labelKey: "lowerRightSeats",
         bounds: [0.70361, 0.42519, 0.12929, 0.4963],
         seats: [
           { id: "2F-D01", x: 0.73087, y: 0.46074, state: "empty" },
@@ -162,13 +162,13 @@ window.LIBRARY_FLOORS = [
   {
     id: "3f",
     label: "3/F",
-    name: "三楼",
+    labelKey: "thirdFloor",
     width: 1680,
     height: 617,
     image: "floors/3f.webp",
     zones: [
       {
-        name: "左上圆桌",
+        labelKey: "upperLeftRoundTables",
         bounds: [0.17214, 0.03704, 0.10306, 0.2963],
         seats: [
           { id: "3F-A01", x: 0.20498, y: 0.08642, state: "empty" },
@@ -180,7 +180,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "左侧走廊桌位",
+        labelKey: "leftCorridorSeats",
         bounds: [0.1778, 0.4784, 0.11438, 0.48457],
         seats: [
           { id: "3F-B01", x: 0.22877, y: 0.49691, state: "empty" },
@@ -194,7 +194,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右上桌位",
+        labelKey: "upperRightSeats",
         bounds: [0.52888, 0.03704, 0.09966, 0.29938],
         seats: [
           { id: "3F-C01", x: 0.54813, y: 0.12037, state: "empty" },
@@ -206,7 +206,7 @@ window.LIBRARY_FLOORS = [
         ],
       },
       {
-        name: "右侧走廊桌位",
+        labelKey: "rightCorridorSeats",
         bounds: [0.51416, 0.46605, 0.08267, 0.40741],
         seats: [
           { id: "3F-D01", x: 0.55266, y: 0.49691, state: "empty" },

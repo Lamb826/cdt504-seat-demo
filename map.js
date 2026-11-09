@@ -1,12 +1,9 @@
 "use strict";
 
+const { t } = window.SeatLanguage;
 const KEY = "seatCheckinRecord";
 const floors = window.LIBRARY_FLOORS;
-const labels = {
-  empty: { text: "空位", mark: "✓" },
-  occ: { text: "在座", mark: "•" },
-  away: { text: "暂离", mark: "–" },
-};
+const stateMarks = { empty: "✓", occ: "•", away: "–" };
 const floorTabs = document.getElementById("floor-tabs");
 const zoneTabs = document.getElementById("zone-tabs");
 const canvas = document.getElementById("plan-canvas");
@@ -15,7 +12,7 @@ const markers = document.getElementById("plan-markers");
 const seatList = document.getElementById("seat-list");
 const dialog = document.getElementById("seat-dialog");
 const checkin = document.getElementById("seat-checkin");
-const counters = Object.fromEntries(Object.keys(labels).map(state => [state, document.getElementById("stat-" + state)]));
+const counters = Object.fromEntries(Object.keys(stateMarks).map(state => [state, document.getElementById("stat-" + state)]));
 const floorParam = new URLSearchParams(location.search).get("floor");
 let floor = floors.find(item => item.id === floorParam) ?? floors[0];
 let zoneIndex = -1;
@@ -48,15 +45,15 @@ function setText(id, text) {
 function updateDialog(info) {
   const { seat, zone } = selected;
   setText("seat-dialog-code", `${floor.label} · ${seat.id}`);
-  setText("seat-dialog-title", labels[info.state].text);
-  let detail = `${floor.name} · ${zone.name}。`;
-  if (info.state === "empty") detail += "到桌后，可用此编号演示签到。";
-  if (info.state === "occ") detail += info.own ? "这是你在本机签到的座位。" : "模拟场景中，此座位正在使用。";
-  if (info.state === "away") {
-    detail += info.own ? "你的座位处于暂离状态。" : "模拟场景中，使用者暂时离开。";
-    if (info.leftMin != null) detail += `预计保留约 ${info.leftMin} 分钟。`;
-  }
-  setText("seat-dialog-detail", detail);
+  setText("seat-dialog-title", t(info.state));
+  const descriptions = {
+    empty: "emptyDescription",
+    occ: info.own ? "ownOccupiedDescription" : "demoOccupiedDescription",
+    away: info.own ? "ownAwayDescription" : "demoAwayDescription",
+  };
+  const area = `${t(floor.labelKey)} · ${t(zone.labelKey)}`;
+  const hold = info.leftMin == null ? "" : " " + t("heldFor", { minutes: info.leftMin });
+  setText("seat-dialog-detail", `${area} — ${t(descriptions[info.state])}${hold}`);
   checkin.hidden = info.state !== "empty";
   const query = new URLSearchParams({ seat: seat.id, from: "map", floor: floor.id });
   checkin.href = "checkin.html?" + query;
@@ -112,7 +109,7 @@ function selectZone(index) {
     const section = document.createElement("section");
     section.className = "seat-group";
     const heading = document.createElement("h3");
-    heading.textContent = zone.name;
+    heading.textContent = t(zone.labelKey);
     const list = document.createElement("div");
     list.className = "seat-group-buttons";
     section.append(heading, list);
@@ -128,7 +125,9 @@ function selectZone(index) {
   for (const [buttonIndex, button] of [...zoneTabs.children].entries()) {
     button.setAttribute("aria-pressed", String(buttonIndex === zoneIndex + 1));
   }
-  setText("layout-caption", chosen ? `${chosen.name} · ${chosen.seats.length} 个演示座位` : `${floorSeats.length} 个演示座位 · 可放大指定区域`);
+  setText("layout-caption", chosen
+    ? t("zoneCount", { zone: t(chosen.labelKey), count: chosen.seats.length })
+    : t("floorCount", { count: floorSeats.length }));
   renderStates();
 }
 
@@ -144,14 +143,18 @@ function selectFloor(next, updateUrl = true) {
     url.searchParams.set("floor", floor.id);
     history.replaceState(null, "", url);
   }
-  setText("layout-heading", `${floor.label} · ${floor.name}`);
   planImage.src = floor.image;
-  planImage.alt = `岭南大学图书馆 ${floor.label} 平面布局`;
+  renderFloor(-1);
+}
+
+function renderFloor(zone) {
+  setText("layout-heading", `${floor.label} · ${t(floor.labelKey)}`);
+  planImage.alt = t("floorAlt", { floor: floor.label });
   zoneTabs.replaceChildren(
-    newButton("zone-tab", "整层", () => selectZone(-1)),
-    ...floor.zones.map((zone, index) => newButton("zone-tab", zone.name, () => selectZone(index))),
+    newButton("zone-tab", t("wholeFloor"), () => selectZone(-1)),
+    ...floor.zones.map((item, index) => newButton("zone-tab", t(item.labelKey), () => selectZone(index))),
   );
-  selectZone(-1);
+  selectZone(zone);
 }
 
 function renderStates() {
@@ -161,14 +164,15 @@ function renderStates() {
   for (const [state, counter] of Object.entries(counters)) counter.textContent = counts[state];
   for (const { seat, dot, label } of visibleSeats) {
     const { state, leftMin } = seatState(seat, session);
-    const detail = `${seat.id} · ${labels[state].text}${leftMin == null ? "" : ` · 约 ${leftMin} 分钟`}`;
+    const remaining = leftMin == null ? "" : " · " + t("remaining", { minutes: leftMin });
+    const detail = `${seat.id} · ${t(state)}${remaining}`;
     for (const [node, base] of [[dot, "plan-dot"], [label, "seat-label"]]) {
       node.className = `${base} is-${state}`;
       node.dataset.state = state;
       node.title = detail;
       node.setAttribute("aria-label", detail);
     }
-    dot.textContent = labels[state].mark;
+    dot.textContent = stateMarks[state];
   }
   if (selected && dialog.open) updateDialog(seatState(selected.seat, session));
 }
@@ -179,19 +183,24 @@ for (const item of floors) {
   const title = document.createElement("strong");
   title.textContent = item.label;
   const name = document.createElement("small");
-  name.textContent = item.name;
+  name.textContent = t(item.labelKey);
   button.append(title, name);
   floorTabs.append(button);
   floorButtons.set(item.id, button);
 }
 document.getElementById("refresh-map").addEventListener("click", () => {
   renderStates();
-  setText("map-feedback", `${floor.label} 本机座位状态已刷新`);
+  setText("map-feedback", t("mapRefreshed", { floor: floor.label }));
 });
 dialog.addEventListener("close", () => { selected = null; });
 window.addEventListener("pageshow", renderStates);
 window.addEventListener("storage", event => {
   if (event.key === KEY || event.key === null) renderStates();
+});
+window.addEventListener("seatlanguagechange", () => {
+  for (const item of floors) floorButtons.get(item.id).querySelector("small").textContent = t(item.labelKey);
+  setText("map-feedback", "");
+  renderFloor(zoneIndex);
 });
 selectFloor(floor, false);
 setInterval(renderStates, 10000);

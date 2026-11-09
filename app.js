@@ -1,5 +1,6 @@
 "use strict";
 
+const { t } = window.SeatLanguage;
 const KEY = "seatCheckinRecord";
 const MINUTE = 60_000;
 const WARN_BEFORE = 10;
@@ -16,6 +17,8 @@ let currentView = "homeView";
 let actionSession = null;
 let warnedFor = null;
 let notificationSetup = false;
+let doneContent = null;
+let checkinError = null;
 
 function readRecord() {
   try {
@@ -47,9 +50,9 @@ async function notify(title, body) {
   try {
     const registration = await navigator.serviceWorker?.getRegistration();
     if (registration?.active) {
-      await registration.showNotification(title, { body, icon: "icon-192.png" });
+      await registration.showNotification(title, { body, lang: document.documentElement.lang, icon: "icon-192.png" });
     } else {
-      new Notification(title, { body });
+      new Notification(title, { body, lang: document.documentElement.lang });
     }
   } catch {
     // In-page warnings still work when the browser declines system notifications.
@@ -62,7 +65,7 @@ function currentRecord() {
   const released = { ...record, tempUntil: null, autoOut: Date.now() };
   writeRecord(released);
   publish("autorelease", released);
-  void notify("座位已自动释放 · Seat released", `座位 ${released.seat} 暂离超时，已自动签出。`);
+  void notify(t("releaseNotification"), t("releaseNotificationDetail", released));
   return released;
 }
 
@@ -77,21 +80,21 @@ function setText(id, value) {
 }
 
 function homeStatus(record) {
-  if (!record) return ["idle", "还未签到", "到达座位后，扫桌贴码或输入座位号。"];
+  if (!record) return ["idle", t("notCheckedIn"), t("checkinPrompt")];
   if (record.autoOut) {
-    return ["released", `${record.seat} 已释放`, `${displayTime(record.autoOut)} 自动签出。需要继续使用时请重新签到。`];
+    return ["released", t("releasedStatus", record), t("releasedDetail", { time: displayTime(record.autoOut) })];
   }
   if (record.tempUntil) {
     const left = Math.max(1, Math.ceil((record.tempUntil - Date.now()) / MINUTE));
     const warning = left <= WARN_BEFORE;
     return [
       warning ? "warning" : "away",
-      `${record.seat} ${warning ? "即将释放" : "暂离中"}`,
-      `请于 ${displayTime(record.tempUntil)} 前返回并确认。`,
-      `${left} 分钟`,
+      t(warning ? "warningStatus" : "awayStatus", record),
+      t("returnBy", { time: displayTime(record.tempUntil) }),
+      t("minutes", { minutes: left }),
     ];
   }
-  return ["occupied", `${record.seat} 在座中`, `签到时间 ${displayTime(record.checkinAt)}`];
+  return ["occupied", t("occupiedStatus", record), t("checkedInAt", { time: displayTime(record.checkinAt) })];
 }
 
 function renderHome(record = currentRecord()) {
@@ -126,12 +129,18 @@ function goHome() {
   show("homeView");
 }
 
-function showDone(english, title, message, notifications = false) {
-  notificationSetup = notifications;
-  setText("doneEnglish", english);
-  setText("doneTitle", title);
-  setText("doneMsg", message);
+function renderDone() {
+  const { eyebrow, title, message, values } = doneContent;
+  setText("doneEyebrow", t(eyebrow));
+  setText("doneTitle", t(title));
+  setText("doneMsg", t(message, values));
   updateNotificationSettings();
+}
+
+function showDone(eyebrow, title, message, values, notifications = false) {
+  doneContent = { eyebrow, title, message, values };
+  notificationSetup = notifications;
+  renderDone();
   show("doneBox");
 }
 
@@ -141,12 +150,12 @@ function updateNotificationSettings() {
   const permission = available ? Notification.permission : "unavailable";
   $("btnEnableNotify").hidden = permission !== "default";
   const hints = {
-    default: "可以授权浏览器通知。暂离快到期时，也可在当前页面查看预警。",
-    granted: "浏览器通知已允许。保持页面打开以接收暂离提醒。",
-    denied: "浏览器通知未获授权。页面内的预警仍可使用。",
-    unavailable: "此环境可查看页面内预警。浏览器通知需要受支持的 HTTPS 或 localhost 环境。",
+    default: "notifyDefault",
+    granted: "notifyGranted",
+    denied: "notifyDenied",
+    unavailable: "notifyUnavailable",
   };
-  setText("notifyHint", hints[permission]);
+  setText("notifyHint", t(hints[permission]));
 }
 
 function goCheckin(focus = true) {
@@ -158,18 +167,21 @@ function goCheckin(focus = true) {
   const seat = $("seat");
   seat.value = requestedSeat || record?.seat || "";
   seat.readOnly = Boolean(requestedSeat);
-  setText("checkinIntro", fromMap ? "这是座位图的演示签到，可用虚构资料试用。" : "坐到对应位置后，再确认签到。");
-  setText("seatHint", requestedSeat
-    ? (fromMap ? "已从座位图带入座位号。" : "已从签到链接带入并锁定座位号。")
-    : "可以手动输入桌上的座位号，或扫描桌贴二维码。");
-  setText("emailHint", endpoint && !demoCode.test(requestedSeat)
-    ? "由配置的服务处理邮件提醒。"
-    : "演示时可留空。");
+  renderCheckinText();
   if (record?.autoOut) {
     for (const id of ["name", "sid", "email"]) $(id).value = record[id] ?? "";
   }
+  checkinError = null;
   $("formError").hidden = true;
   show("checkinView", focus);
+}
+
+function renderCheckinText() {
+  setText("checkinIntro", t(fromMap ? "demoCheckinIntro" : "deskIntro"));
+  const linkedSeat = fromMap ? "seatFromMap" : "seatFromCode";
+  setText("seatHint", t(requestedSeat ? linkedSeat : "seatManual"));
+  setText("emailHint", t(endpoint && !demoCode.test(requestedSeat) ? "emailService" : "demoEmail"));
+  if (checkinError) setText("formError", t(...checkinError));
 }
 
 function onCheckin(event) {
@@ -184,18 +196,19 @@ function onCheckin(event) {
     tempUntil: null,
     autoOut: null,
   };
-  let error = "";
-  if (existing && !existing.autoOut) error = `已有在座记录 ${existing.seat}，请先管理当前座位。`;
-  else if (!record.name || !record.sid || !record.seat) error = "请填写姓名、学号及座位号。";
-  if (error) {
-    setText("formError", error);
+  checkinError = null;
+  if (existing && !existing.autoOut) checkinError = ["existingCheckin", existing];
+  else if (!record.name || !record.sid || !record.seat) checkinError = ["requiredDetails"];
+  else if ($("email").validity.typeMismatch) checkinError = ["invalidEmail"];
+  if (checkinError) {
+    setText("formError", t(...checkinError));
     $("formError").hidden = false;
     return;
   }
   writeRecord(record);
   publish("checkin", record, { email: record.email });
   $("checkinForm").reset();
-  showDone("CHECKED IN", "签到成功", `座位 ${record.seat} 已登记为在座中。`, true);
+  showDone("checkinEyebrow", "checkinDone", "checkinDoneDetail", record, true);
 }
 
 function mealTime() {
@@ -217,11 +230,13 @@ function goAway() {
     input.name = "duration";
     input.value = String(minute);
     input.checked = index === minutes.length - 1;
-    option.append(input, `${minute} 分钟`);
+    const label = document.createElement("span");
+    label.textContent = t("minutes", { minutes: minute });
+    option.append(input, label);
     return option;
   });
   $("durationRow").replaceChildren(...choices);
-  setText("mealNote", meal ? "当前为用餐时段，最多可暂离 60 分钟。" : "当前为一般时段，最多可暂离 30 分钟。");
+  setText("mealNote", t(meal ? "mealBreak" : "standardBreak"));
   show("awayView");
 }
 
@@ -243,7 +258,7 @@ function onAway(event) {
   record.tempUntil = Date.now() + minutes * MINUTE;
   writeRecord(record);
   publish("away", record, { tempUntil: record.tempUntil, email: record.email });
-  showDone("TEMPORARILY AWAY", "已登记暂离", `座位 ${record.seat} 保留至 ${displayTime(record.tempUntil)}。返回后请确认恢复在座。`);
+  showDone("breakEyebrow", "awayDone", "awayDoneDetail", { seat: record.seat, time: displayTime(record.tempUntil) });
 }
 
 function resume() {
@@ -252,15 +267,20 @@ function resume() {
   record.tempUntil = null;
   writeRecord(record);
   publish("resume", record);
-  showDone("BACK ON SEAT", "已恢复在座", `座位 ${record.seat} 已重新显示为在座中。`);
+  showDone("resumeEyebrow", "resumeDone", "resumeDoneDetail", record);
 }
 
 function goCheckout() {
   const record = currentRecord();
   if (!record || record.autoOut) return goHome();
   actionSession = record;
-  setText("checkoutInfo", `当前座位 ${record.seat} · ${displayTime(record.checkinAt)} 签到`);
+  renderCheckoutText();
   show("checkoutView");
+}
+
+function renderCheckoutText() {
+  const { seat, checkinAt } = actionSession;
+  setText("checkoutInfo", t("checkoutDetail", { seat, time: displayTime(checkinAt) }));
 }
 
 function checkout() {
@@ -268,7 +288,7 @@ function checkout() {
   if (!record) return;
   localStorage.removeItem(KEY);
   publish("checkout", record);
-  showDone("CHECKED OUT", "已签出", `座位 ${record.seat} 已恢复可用。`);
+  showDone("checkoutEyebrow", "checkoutDone", "checkoutDoneDetail", record);
 }
 
 function tick() {
@@ -281,7 +301,7 @@ function tick() {
     if (localStorage.getItem(warningKey)) return;
     localStorage.setItem(warningKey, "1");
     const minutes = Math.max(1, Math.ceil((end - Date.now()) / MINUTE));
-    void notify("座位即将释放 · Seat releasing soon", `座位 ${record.seat} 剩余约 ${minutes} 分钟。`);
+    void notify(t("warningNotification"), t("warningNotificationDetail", { seat: record.seat, minutes }));
   }
 }
 
@@ -307,11 +327,23 @@ if (returnFloor) {
   }
 }
 if (requestedSeat && !fromMap) {
-  setText("deskBadge", `桌号 ${requestedSeat}`);
+  setText("deskBadge", t("deskNumber", { seat: requestedSeat }));
   $("deskBadge").hidden = false;
 }
 renderHome();
 if (requestedSeat || params.get("view") === "checkin") goCheckin(false);
+window.addEventListener("seatlanguagechange", () => {
+  renderHome();
+  if (requestedSeat && !fromMap) setText("deskBadge", t("deskNumber", { seat: requestedSeat }));
+  if (currentView === "checkinView") renderCheckinText();
+  if (currentView === "awayView") {
+    const durations = [...$("durationRow").querySelectorAll("input")];
+    for (const input of durations) input.nextElementSibling.textContent = t("minutes", { minutes: input.value });
+    setText("mealNote", t(durations.length > 3 ? "mealBreak" : "standardBreak"));
+  }
+  if (currentView === "checkoutView") renderCheckoutText();
+  if (currentView === "doneBox") renderDone();
+});
 setInterval(tick, 1000);
 window.addEventListener("pageshow", tick);
 window.addEventListener("storage", event => {

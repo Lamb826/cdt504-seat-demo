@@ -1,8 +1,8 @@
 const CACHE_PREFIX = "cdt504-study-seat-";
-const CACHE = CACHE_PREFIX + "2";
+const CACHE = CACHE_PREFIX + "3";
 const ASSETS = [
   "index.html", "checkin.html", "seat-map.html", "base.css", "map.css",
-  "app.js", "map.js", "floor-data.js", "config.js", "register.js", "manifest.json",
+  "i18n.js", "app.js", "map.js", "floor-data.js", "config.js", "register.js", "manifest.json",
   "seat-plate.html", "plate.css", "plate.js",
   "icon-192.png", "icon-512.png",
   "floors/1f.webp", "floors/mf.webp", "floors/2f.webp", "floors/3f.webp",

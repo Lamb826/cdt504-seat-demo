@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#edf3ff">
-  <title>签到入座 · Study Seat</title>
+  <title data-text="checkIn">簽到入座</title>
   <link rel="stylesheet" href="base.css">
+  <script src="i18n.js" defer></script>
   <script>
     const target = new URL("index.html", location.href);
     target.search = location.search;
@@ -13,5 +14,5 @@
     location.replace(target);
   </script>
 </head>
-<body><main class="shell"><a href="index.html">前往签到首页 · Open check-in</a></main></body>
+<body><main class="shell"><a href="index.html" data-text="goCheckin">前往簽到</a></main></body>
 </html>

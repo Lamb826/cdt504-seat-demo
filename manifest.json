@@ -1,7 +1,7 @@
 {
-  "name": "自习室座位 · Study Seat",
+  "name": "Study Seat",
   "short_name": "Study Seat",
-  "lang": "zh-HK",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
