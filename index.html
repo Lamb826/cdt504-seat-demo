@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf3ff">
+  <meta name="description" content="查看自习室空位，再到桌扫码签到。">
+  <title>自习室座位 · Study Seat</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="base.css">
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="register.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar glass">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6M4 13h16v4H4zM6 17v3m12-3v3"/></svg>
+        </span>
+        <span>自习室座位<small>STUDY SEAT</small></span>
+      </a>
+      <nav aria-label="主导航">
+        <a class="nav-link" href="index.html" aria-current="page">首页</a>
+        <a class="nav-link" href="seat-map.html">座位图</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section id="homeView" class="home-view">
+        <div class="hero glass">
+          <div class="hero-copy">
+            <div class="hero-kicker"><span class="eyebrow">图书馆自习 · STUDY ROOM</span><span id="dataMode" class="mode">演示状态</span></div>
+            <h1>先查空位，<br>到座再签到。</h1>
+            <p>在手机上查看自习室的座位状态。找到空位后，扫桌上的二维码，确认你的座位号。</p>
+            <a class="button primary hero-button" href="seat-map.html">查看空座位图 <span aria-hidden="true">↗</span></a>
+          </div>
+          <a class="map-preview" href="seat-map.html" aria-label="打开图书馆四个楼层的座位图">
+            <span class="map-preview-title"><span>空座位图<small>SEAT AVAILABILITY</small></span><span class="map-preview-arrow" aria-hidden="true">↗</span></span>
+            <svg viewBox="0 0 220 104" fill="none" class="preview-grid" aria-hidden="true">
+              <rect x="3" y="3" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <rect x="59" y="3" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <rect x="116" y="3" width="44" height="37" rx="11" fill="#d5e6ff" stroke="#9fbcf6" stroke-width="2"/>
+              <rect x="173" y="3" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <rect x="3" y="59" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <rect x="59" y="59" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <rect x="116" y="59" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <rect x="173" y="59" width="44" height="37" rx="11" fill="#e4f3ed"/>
+              <path d="M133 22l4 4 7-8" stroke="#245bd5" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="map-preview-foot"><strong>4 个楼层</strong><small>1/F · M/F · 2/F · 3/F</small></span>
+          </a>
+        </div>
+
+        <section class="session glass" aria-labelledby="sessionTitle">
+          <div class="section-heading"><div><p class="eyebrow">MY SESSION</p><h2 id="sessionTitle">我的座位</h2></div><span id="deskBadge" class="mode" hidden></span></div>
+          <div id="statusCard" class="status" role="status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <div><strong id="statusTitle"></strong><p id="statusDetail"></p></div>
+            <div id="statusTime" class="status-time" hidden></div>
+          </div>
+          <div class="actions">
+            <button id="btnIn" class="button primary"><span>签到入座<small>Check in</small></span><span aria-hidden="true">→</span></button>
+            <button id="btnAway" class="button secondary"><span>临时离开<small>Step away</small></span><span aria-hidden="true">◷</span></button>
+            <button id="btnBack" class="button primary" hidden><span>我已返回<small>Resume</small></span><span aria-hidden="true">↩</span></button>
+            <button id="btnOut" class="button secondary"><span>结束使用<small>Check out</small></span><span aria-hidden="true">↗</span></button>
+          </div>
+          <details class="rules"><summary>查看暂离规则 <small>Session rules</small></summary>
+            <p>一般时段最多 30 分钟。午餐时段 11:00–13:30、晚餐时段 17:00–19:30 最多 60 分钟。距到期 10 分钟时，签到页面会预警。到期仍未确认返回，座位自动释放。</p>
+          </details>
+        </section>
+      </section>
+
+      <section id="checkinView" class="flow glass" hidden aria-labelledby="checkinTitle">
+        <button class="button quiet back-link" type="button" data-home>← 返回首页</button>
+        <div class="flow-header"><p class="eyebrow">SEAT CHECK-IN</p><h1 id="checkinTitle">签到入座</h1><p id="checkinIntro">坐到对应位置后，再确认签到。</p></div>
+        <form id="checkinForm">
+          <div class="field seat-field"><label for="seat">座位号 <small>Seat number</small></label><input id="seat" type="text" placeholder="例如 A03" maxlength="24" autocapitalize="characters" required><p id="seatHint" class="field-hint"></p></div>
+          <div class="field-grid">
+            <div class="field"><label for="name">姓名 <small>Name</small></label><input id="name" type="text" placeholder="输入姓名" autocomplete="name" maxlength="100" required></div>
+            <div class="field"><label for="sid">学号 <small>Student ID</small></label><input id="sid" type="text" placeholder="输入学号" inputmode="numeric" maxlength="64" required></div>
+          </div>
+          <div class="field"><label for="email">提醒邮箱 <small>Email · 选填</small></label><input id="email" type="email" placeholder="you@university.edu" autocomplete="email" maxlength="254"><p id="emailHint" class="field-hint">本机演示可保留邮箱设置。</p></div>
+          <p id="formError" class="error" role="alert" hidden></p>
+          <button class="button primary submit" type="submit" id="btnCheckin">确认签到 <small>Check in</small></button>
+          <a class="button quiet form-map" href="seat-map.html">返回座位图</a>
+        </form>
+      </section>
+
+      <section id="awayView" class="flow glass" hidden aria-labelledby="awayTitle">
+        <button class="button quiet back-link" type="button" data-home>← 返回首页</button>
+        <div class="flow-header"><p class="eyebrow">TEMPORARILY AWAY</p><h1 id="awayTitle">临时离开</h1><p>选择预计离开多久，返回后点「我已返回」。</p></div>
+        <form id="awayForm">
+          <fieldset class="duration-field"><legend>选择时长 <small>Duration</small></legend><div id="durationRow" class="duration-row"></div></fieldset>
+          <p id="mealNote" class="field-hint"></p>
+          <p class="notice">距到期 10 分钟时，签到页面会显示预警。超时仍未返回，座位自动释放。</p>
+          <button class="button primary submit" type="submit">确认暂离 <small>Confirm</small></button>
+        </form>
+      </section>
+
+      <section id="checkoutView" class="flow glass" hidden aria-labelledby="checkoutTitle">
+        <button class="button quiet back-link" type="button" data-home>← 返回首页</button>
+        <div class="flow-header"><p class="eyebrow">SEAT CHECKOUT</p><h1 id="checkoutTitle">结束使用</h1><p>确认签出后，座位图会把该座位显示为可用。</p></div>
+        <p id="checkoutInfo" class="notice"></p>
+        <button id="confirmCheckout" class="button primary submit">确认签出 <small>Check out</small></button>
+      </section>
+
+      <section id="doneBox" class="flow glass done" hidden aria-labelledby="doneTitle">
+        <div class="done-mark" aria-hidden="true">✓</div>
+        <div class="flow-header"><p id="doneEnglish" class="eyebrow"></p><h1 id="doneTitle"></h1><p id="doneMsg"></p></div>
+        <div id="notifyOptions" class="notice" hidden>
+          <p id="notifyHint"></p><button id="btnEnableNotify" type="button" class="button secondary">开启浏览器通知</button>
+        </div>
+        <div class="done-actions"><button class="button primary" type="button" data-home>管理我的座位</button><a class="button secondary" href="seat-map.html">查看座位图</a></div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>CDT504 · Campus Library Seat Rotation</span><span>查空位 · 签到 · 释放</span></footer>
+  </div>
+</body>
+</html>

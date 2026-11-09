@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf3ff">
+  <title>座位号码牌 · Desk QR Plates</title>
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="plate.css">
+  <script src="plate.js" defer></script>
+</head>
+<body class="plate-page">
+  <div class="shell plate-shell">
+    <header class="topbar glass plate-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6M4 13h16v4H4zM6 17v3m12-3v3"/></svg>
+        </span>
+        <span>自习室座位<small>STUDY SEAT</small></span>
+      </a>
+      <a class="nav-link" href="index.html">返回首页</a>
+    </header>
+    <main class="plate-main">
+      <section class="glass plate-form-card" aria-labelledby="plate-title">
+        <p class="eyebrow">ROOM SETUP</p>
+        <h1 id="plate-title">生成座位号码牌</h1>
+        <p class="plate-subtitle">批量生成桌贴二维码。到座后扫码，签到表会自动填写座位号。</p>
+        <form id="plate-form">
+          <div class="field plate-field">
+            <label for="plate-url">签到页面网址 <small lang="en">Check-in page URL</small></label>
+            <input id="plate-url" type="url" inputmode="url" autocomplete="off" required placeholder="https://example.org/library/index.html" aria-describedby="plate-url-note">
+            <p id="plate-url-note" class="field-hint">打印前，请确认手机能够访问这个网址。</p>
+          </div>
+          <div class="field plate-field">
+            <label for="plate-codes">座位号 <small lang="en">Seat numbers</small></label>
+            <textarea id="plate-codes" rows="3" maxlength="1600" spellcheck="false" autocapitalize="characters" required placeholder="A01, A02, A03" aria-describedby="plate-code-note"></textarea>
+            <p id="plate-code-note" class="field-hint">用逗号或换行分隔，每批最多 60 个座位。</p>
+          </div>
+          <p class="plate-provider">点击「生成号码牌」会将签到页面网址和座位号发送给外部二维码服务 QR Server。这里无需输入姓名、学号或邮箱。</p>
+          <p id="plate-error" class="plate-error" role="alert" hidden></p>
+          <div class="plate-actions">
+            <button type="submit" class="button primary">生成号码牌 <small lang="en">Generate</small></button>
+            <button type="button" id="plate-print" class="button secondary" disabled>打印 <small lang="en">Print</small></button>
+          </div>
+        </form>
+      </section>
+      <p id="plate-status" class="plate-status" role="status"></p>
+      <section id="plates" class="plates" aria-label="座位号码牌" hidden></section>
+    </main>
+    <footer class="footer plate-footer"><span>CDT504 · Campus Library Seat Rotation</span></footer>
+  </div>
+</body>
+</html>
